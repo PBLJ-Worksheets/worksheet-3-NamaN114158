@@ -1,0 +1,125 @@
+import java.util.Scanner;
+
+abstract class Account {
+    protected double balance;
+
+    public Account(double balance) {
+        if (balance < 0) {
+            throw new IllegalArgumentException("Error: Initial balance cannot be negative.");
+        }
+        this.balance = balance;
+    }
+
+    public abstract double calculateInterest();
+
+    public double getBalance() {
+        return balance;
+    }
+}
+
+class FDAccount extends Account {
+    private int durationInDays;
+    private int age;
+
+    public FDAccount(double balance, int durationInDays, int age) {
+        super(balance);
+        this.durationInDays = durationInDays;
+        this.age = age;
+    }
+
+    @Override
+    public double calculateInterest() {
+        double rate = getFDInterestRate();
+        return (balance * rate) / 100;
+    }
+
+    private double getFDInterestRate() {
+        if (balance >= 1000000) return 6.5;
+        if (durationInDays < 7 || durationInDays > 365) {
+            throw new IllegalArgumentException("Error: FD duration must be between 7 to 365 days.");
+        }
+        if (durationInDays <= 14) return (age >= 60) ? 5.0 : 4.5;
+        if (durationInDays <= 29) return (age >= 60) ? 5.25 : 4.75;
+        if (durationInDays <= 45) return (age >= 60) ? 6.0 : 5.5;
+        return 7.0;
+    }
+}
+
+class RDAccount extends Account {
+    private int months;
+    private int age;
+
+    public RDAccount(double monthlyDeposit, int months, int age) {
+        super(monthlyDeposit);
+        this.months = months;
+        this.age = age;
+    }
+
+    @Override
+    public double calculateInterest() {
+        double rate = (months == 6) ? ((age >= 60) ? 8.0 : 7.5)
+                  : (months == 12) ? ((age >= 60) ? 8.5 : 8.0)
+                  : 9.0;
+        return (balance * months * rate) / 100;
+    }
+}
+
+class SavingsAccount extends Account {
+    private static final double INTEREST_RATE = 4.0;
+
+    public SavingsAccount(double balance) {
+        super(balance);
+    }
+
+    @Override
+    public double calculateInterest() {
+        return (balance * INTEREST_RATE) / 100;
+    }
+}
+
+public class InterestCalculator {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        System.out.println("Select Account Type:\n1. Fixed Deposit (FD)\n2. Recurring Deposit (RD)\n3. Savings Account");
+        int choice = sc.nextInt();
+
+        switch (choice) {
+            case 1:
+                System.out.print("Enter FD Amount: ");
+                double fdAmount = sc.nextDouble();
+                System.out.print("Enter Duration (Days): ");
+                int fdDays = sc.nextInt();
+                System.out.print("Enter Account Holder's Age: ");
+                int fdAge = sc.nextInt();
+
+                FDAccount fd = new FDAccount(fdAmount, fdDays, fdAge);
+                System.out.println("FD Interest Earned: " + fd.calculateInterest());
+                break;
+
+            case 2:
+                System.out.print("Enter Monthly Deposit: ");
+                double rdDeposit = sc.nextDouble();
+                System.out.print("Enter Number of Months: ");
+                int rdMonths = sc.nextInt();
+                System.out.print("Enter Account Holder's Age: ");
+                int rdAge = sc.nextInt();
+
+                RDAccount rd = new RDAccount(rdDeposit, rdMonths, rdAge);
+                System.out.println("RD Interest Earned: " + rd.calculateInterest());
+                break;
+
+            case 3:
+                System.out.print("Enter Savings Account Balance: ");
+                double savingsBalance = sc.nextDouble();
+                SavingsAccount savings = new SavingsAccount(savingsBalance);
+                System.out.println("Annual Savings Interest Earned: " + savings.calculateInterest());
+                break;
+
+            default:
+                System.out.println("Invalid choice. Please try again.");
+        }
+
+        sc.close();
+    }
+}
